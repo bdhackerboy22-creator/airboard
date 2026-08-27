@@ -26,6 +26,7 @@ export function CameraView({ onTrackingFrame }: CameraViewProps) {
     setIsMobileConnected,
     remoteFacingMode,
     setRemoteFacingMode,
+    setActiveStream,
     setCameraActive,
     setCameraStatus,
     addLog,
@@ -97,17 +98,20 @@ export function CameraView({ onTrackingFrame }: CameraViewProps) {
             setIsMobileConnected(true);
             setCameraActive(true);
             setCameraStatus('active');
+            setActiveStream(remoteStream);
           });
 
           call.on('close', () => {
             addLog('Mobile camera stream closed.');
             setIsMobileConnected(false);
+            setActiveStream(null);
             stopCamera();
           });
 
           call.on('error', (err: any) => {
             addLog(`Mobile connection error: ${err.message || err}`);
             setIsMobileConnected(false);
+            setActiveStream(null);
           });
         });
 
@@ -144,14 +148,19 @@ export function CameraView({ onTrackingFrame }: CameraViewProps) {
       // Disconnect mobile call
       setIsMobileConnected(false);
       stopCamera();
+      setActiveStream(null);
       addLog('Disconnected mobile camera.');
       return;
     }
 
     if (isCameraActive) {
       stopCamera();
+      setActiveStream(null);
     } else {
-      await startCamera(videoRef.current);
+      const stream = await startCamera(videoRef.current);
+      if (stream) {
+        setActiveStream(stream);
+      }
     }
   };
 
@@ -160,8 +169,11 @@ export function CameraView({ onTrackingFrame }: CameraViewProps) {
     setSelectedDeviceId(id);
     if (isCameraActive) {
       // Restart camera with new device
-      setTimeout(() => {
-        startCamera(videoRef.current);
+      setTimeout(async () => {
+        const stream = await startCamera(videoRef.current);
+        if (stream) {
+          setActiveStream(stream);
+        }
       }, 100);
     }
   };

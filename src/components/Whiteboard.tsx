@@ -15,7 +15,15 @@ export const Whiteboard = forwardRef<{ clearCanvas: () => void }, WhiteboardProp
   ({ onDrawingRef }, ref) => {
     // Canvas size/DPI management
     const { canvasRef, resizeCanvas } = useCanvas();
-    const { color, size, clearStrokes } = useBoardStore();
+    const { color, size, clearStrokes, showCameraBg } = useBoardStore();
+    const { 
+      activeStream, 
+      isMobileConnected, 
+      remoteFacingMode, 
+      fingerCoordinates, 
+      handDetected, 
+      drawingEnabled 
+    } = useCameraStore();
 
     // Drawing handlers
     const {
@@ -26,14 +34,26 @@ export const Whiteboard = forwardRef<{ clearCanvas: () => void }, WhiteboardProp
       isDrawing,
     } = useDrawing(canvasRef);
 
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+
     // Bind coordinate streams
     useEffect(() => {
       onDrawingRef({ handleHandMove });
     }, [handleHandMove, onDrawingRef]);
 
+    // Bind background video stream
+    useEffect(() => {
+      const video = videoRef.current;
+      if (video && activeStream) {
+        video.srcObject = activeStream;
+        video.onloadedmetadata = () => {
+          video.play().catch((err) => console.log('Background video play failed:', err));
+        };
+      }
+    }, [activeStream, showCameraBg]);
+
     // Cursor tracking overlay canvas
     const cursorCanvasRef = useRef<HTMLCanvasElement | null>(null);
-    const { fingerCoordinates, handDetected, drawingEnabled } = useCameraStore();
 
     // Redraw tracking cursor on coordinates changes
     useEffect(() => {
@@ -49,7 +69,7 @@ export const Whiteboard = forwardRef<{ clearCanvas: () => void }, WhiteboardProp
       if (handDetected && fingerCoordinates) {
         const rect = cursorCanvas.getBoundingClientRect();
         
-        // Draw matching cursor
+        // Render current visual cursor dot
         drawCursor(
           ctx,
           fingerCoordinates,
@@ -62,21 +82,22 @@ export const Whiteboard = forwardRef<{ clearCanvas: () => void }, WhiteboardProp
       }
     }, [fingerCoordinates, handDetected, drawingEnabled, size, color]);
 
-    // Track cursor canvas resize
+    // Resize handlers for tracking cursor overlay
     useEffect(() => {
       const resizeCursorCanvas = () => {
-        const canvas = cursorCanvasRef.current;
-        if (!canvas || !canvas.parentElement) return;
+        const cursorCanvas = cursorCanvasRef.current;
+        if (!cursorCanvas || !cursorCanvas.parentElement) return;
 
-        const rect = canvas.parentElement.getBoundingClientRect();
+        const parent = cursorCanvas.parentElement;
+        const rect = parent.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
 
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        canvas.style.width = `${rect.width}px`;
-        canvas.style.height = `${rect.height}px`;
+        cursorCanvas.width = rect.width * dpr;
+        cursorCanvas.height = rect.height * dpr;
+        cursorCanvas.style.width = `${rect.width}px`;
+        cursorCanvas.style.height = `${rect.height}px`;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = cursorCanvas.getContext('2d');
         if (ctx) {
           ctx.scale(dpr, dpr);
         }
@@ -105,8 +126,28 @@ export const Whiteboard = forwardRef<{ clearCanvas: () => void }, WhiteboardProp
       },
     }));
 
+    const shouldMirror = !isMobileConnected || remoteFacingMode === 'user';
+
     return (
-      <div className="flex-1 bg-white border border-slate-200 rounded-2xl relative shadow-xl overflow-hidden min-h-[400px]">
+      <div 
+        className={`flex-1 rounded-2xl relative shadow-xl overflow-hidden min-h-[400px] transition-all duration-300 ${
+          showCameraBg 
+            ? 'bg-slate-950 border border-slate-800' 
+            : 'bg-white border border-slate-200'
+        }`}
+      >
+        {/* Live Camera Feed Background */}
+        {showCameraBg && activeStream && (
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-all duration-300 opacity-60 ${
+              shouldMirror ? 'scale-x-[-1]' : 'scale-x-[1]'
+            }`}
+          />
+        )}
+
         {/* Main Drawing Canvas */}
         <canvas
           ref={canvasRef}
@@ -124,7 +165,13 @@ export const Whiteboard = forwardRef<{ clearCanvas: () => void }, WhiteboardProp
         />
         
         {/* Subtle grid pattern background */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
+        <div 
+          className={`absolute inset-0 pointer-events-none [background-size:16px_16px] ${
+            showCameraBg 
+              ? 'bg-[radial-gradient(#fff_1px,transparent_1px)] opacity-[0.05]' 
+              : 'bg-[radial-gradient(#000_1px,transparent_1px)] opacity-[0.02]'
+          }`} 
+        />
       </div>
     );
   }

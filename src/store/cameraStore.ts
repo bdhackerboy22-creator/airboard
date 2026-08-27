@@ -13,6 +13,7 @@ interface CameraState {
   qrModalOpen: boolean;
   isMobileConnected: boolean;
   remoteFacingMode: 'user' | 'environment';
+  activeStream: MediaStream | null;
   logs: string[];
 
   // Actions
@@ -28,6 +29,7 @@ interface CameraState {
   setQrModalOpen: (open: boolean) => void;
   setIsMobileConnected: (connected: boolean) => void;
   setRemoteFacingMode: (mode: 'user' | 'environment') => void;
+  setActiveStream: (stream: MediaStream | null) => void;
   addLog: (log: string) => void;
   clearLogs: () => void;
 }
@@ -45,6 +47,7 @@ export const useCameraStore = create<CameraState>((set) => ({
   qrModalOpen: false,
   isMobileConnected: false,
   remoteFacingMode: 'environment',
+  activeStream: null,
   logs: ['System initialized.', 'Waiting for camera connection...'],
 
   setCameraActive: (active) => set({ isCameraActive: active }),
@@ -59,6 +62,7 @@ export const useCameraStore = create<CameraState>((set) => ({
   setQrModalOpen: (open) => set({ qrModalOpen: open }),
   setIsMobileConnected: (connected) => set({ isMobileConnected: connected }),
   setRemoteFacingMode: (mode) => set({ remoteFacingMode: mode }),
+  setActiveStream: (activeStream) => set({ activeStream }),
   addLog: (log) => set((state) => ({ logs: [log, ...state.logs].slice(0, 50) })),
   clearLogs: () => set({ logs: [] }),
 }));

@@ -8,6 +8,8 @@ import {
   Eraser,
   Smartphone,
   Info,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useBoardStore } from '../store/boardStore';
 import { useCameraStore } from '../store/cameraStore';
@@ -31,6 +33,8 @@ export function Toolbar({ onClear, canvasRef }: ToolbarProps) {
     strokes,
     undoStack,
     redoStack,
+    showCameraBg,
+    setShowCameraBg,
   } = useBoardStore();
 
   const { setQrModalOpen } = useCameraStore();
@@ -158,6 +162,18 @@ export function Toolbar({ onClear, canvasRef }: ToolbarProps) {
         </div>
 
         {/* Clear & Save */}
+        <button
+          onClick={() => setShowCameraBg(!showCameraBg)}
+          className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+            showCameraBg
+              ? 'bg-emerald-600/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-600/20'
+              : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-slate-200'
+          }`}
+          title={showCameraBg ? "Hide Camera Background" : "Show Camera Background"}
+        >
+          {showCameraBg ? <Eye size={16} /> : <EyeOff size={16} />}
+        </button>
+
         <button
           onClick={onClear}
           disabled={strokes.length === 0}

@@ -9,6 +9,7 @@ interface BoardState {
   undoStack: Stroke[][];
   redoStack: Stroke[][];
   workspaceMode: 'whiteboard' | 'android';
+  showCameraBg: boolean;
   
   // Actions
   setColor: (color: string) => void;
@@ -20,6 +21,7 @@ interface BoardState {
   redo: () => void;
   saveStateToUndo: () => void;
   setWorkspaceMode: (mode: 'whiteboard' | 'android') => void;
+  setShowCameraBg: (show: boolean) => void;
 }
 
 export const useBoardStore = create<BoardState>((set) => ({
@@ -30,10 +32,12 @@ export const useBoardStore = create<BoardState>((set) => ({
   undoStack: [],
   redoStack: [],
   workspaceMode: 'whiteboard',
+  showCameraBg: false,
 
   setColor: (color) => set({ color }),
   setSize: (size) => set({ size }),
   setWorkspaceMode: (workspaceMode) => set({ workspaceMode }),
+  setShowCameraBg: (showCameraBg) => set({ showCameraBg }),
   setTool: (tool) => set({ tool }),
   
   addStroke: (stroke) =>
