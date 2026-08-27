@@ -17,7 +17,7 @@ export function QRModal() {
   useEffect(() => {
     if (sessionId) {
       // Force QR Code to point to the local network IP so mobile devices can access it directly
-      const origin = 'http://192.168.1.121:3000';
+      const origin = 'https://airboard-iota.vercel.app';
       setQrUrl(`${origin}/mobile/${sessionId}`);
     }
   }, [sessionId]);

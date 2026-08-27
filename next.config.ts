@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
     'localhost:3000',
     '*.loca.lt',
     '*.ngrok-free.app',
-    'https://silver-paws-act.loca.lt'
+    'https://silver-paws-act.loca.lt',
+    'https://airboard-iota.vercel.app'
   ]
 };
 
