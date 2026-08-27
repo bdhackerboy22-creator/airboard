@@ -132,8 +132,8 @@ export const Whiteboard = forwardRef<{ clearCanvas: () => void }, WhiteboardProp
       <div 
         className={`flex-1 rounded-2xl relative shadow-xl overflow-hidden min-h-[400px] transition-all duration-300 ${
           showCameraBg 
-            ? 'bg-slate-950 border border-slate-800' 
-            : 'bg-white border border-slate-200'
+            ? 'bg-slate-950 border border-slate-800 aspect-[4/3] max-h-[75vh] mx-auto w-full' 
+            : 'bg-white border border-slate-200 w-full'
         }`}
       >
         {/* Live Camera Feed Background */}
